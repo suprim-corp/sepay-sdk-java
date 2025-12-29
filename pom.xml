@@ -59,26 +59,29 @@
         </dependency>
 
         <!-- Jakarta Validation API (provided - user brings implementation) -->
+        <!-- Using 3.0.2 for Java 11 compatibility (Jakarta EE 10) -->
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
-            <version>3.1.0</version>
+            <version>3.0.2</version>
             <scope>provided</scope>
         </dependency>
 
         <!-- Jakarta Persistence API (optional - for entity class) -->
+        <!-- Using 3.1.0 for Java 11 compatibility (Jakarta EE 10) -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.2.0</version>
+            <version>3.1.0</version>
             <scope>provided</scope>
         </dependency>
 
         <!-- Jakarta Servlet API (optional - for TokenExtractor) -->
+        <!-- Using 6.0.0 for Java 11 compatibility (Jakarta EE 10) -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.1.0</version>
+            <version>6.0.0</version>
             <scope>provided</scope>
         </dependency>
 
