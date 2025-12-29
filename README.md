@@ -20,14 +20,14 @@ Java SDK for SePay payment gateway - webhooks, checkout, and order management.
 <dependency>
     <groupId>suprim</groupId>
     <artifactId>sepay-sdk</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.0.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'suprim:sepay-sdk:0.1.0-SNAPSHOT'
+implementation 'suprim:sepay-sdk:0.0.1'
 ```
 
 ## Quick Start
