@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
+
 /**
  * Generates HMAC-SHA256 signatures for SePay checkout forms.
  * Algorithm and field order match PHP SDK for cross-platform compatibility.
@@ -32,7 +34,7 @@ public class SignatureGenerator {
      * @throws IllegalArgumentException if secretKey is null or empty
      */
     public SignatureGenerator(String secretKey) {
-        if (secretKey == null || secretKey.isEmpty()) {
+        if (isNull(secretKey) || secretKey.isEmpty()) {
             throw new IllegalArgumentException("Secret key cannot be null or empty");
         }
         this.secretKeyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
@@ -45,7 +47,7 @@ public class SignatureGenerator {
      * @return Base64-encoded HMAC-SHA256 signature
      */
     public String generateSignature(Map<String, String> fields) {
-        if (fields == null) {
+        if (isNull(fields)) {
             fields = Map.of();
         }
         String message = buildMessage(fields);

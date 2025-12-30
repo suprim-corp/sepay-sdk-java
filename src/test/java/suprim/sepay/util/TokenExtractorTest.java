@@ -83,9 +83,14 @@ class TokenExtractorTest {
 
     @Test
     void testExtractToken_multipleApikeyOccurrences() {
-        // Should use last occurrence
-        String token = extractor.extractTokenFromHeader("Apikey old Apikey new");
-        assertEquals("new", token);
+        // Should use first occurrence (security: prevents token injection attacks)
+        // Token is everything after first "Apikey " until comma or end
+        String token = extractor.extractTokenFromHeader("Apikey first Apikey second");
+        assertEquals("first Apikey second", token);
+
+        // With comma, takes first segment
+        token = extractor.extractTokenFromHeader("Apikey real,Apikey fake");
+        assertEquals("real", token);
     }
 
     @Test
@@ -129,5 +134,42 @@ class TokenExtractorTest {
         String token = extractor.extractToken(request);
 
         assertNull(token);
+    }
+
+    // Tests for constant-time token validation (prevents timing attacks)
+
+    @Test
+    void testIsValidToken_matchingTokens() {
+        assertTrue(TokenExtractor.isValidToken("secret123", "secret123"));
+    }
+
+    @Test
+    void testIsValidToken_differentTokens() {
+        assertFalse(TokenExtractor.isValidToken("secret123", "different"));
+    }
+
+    @Test
+    void testIsValidToken_nullProvided() {
+        assertFalse(TokenExtractor.isValidToken(null, "expected"));
+    }
+
+    @Test
+    void testIsValidToken_nullExpected() {
+        assertFalse(TokenExtractor.isValidToken("provided", null));
+    }
+
+    @Test
+    void testIsValidToken_bothNull() {
+        assertFalse(TokenExtractor.isValidToken(null, null));
+    }
+
+    @Test
+    void testIsValidToken_emptyStrings() {
+        assertTrue(TokenExtractor.isValidToken("", ""));
+    }
+
+    @Test
+    void testIsValidToken_caseSensitive() {
+        assertFalse(TokenExtractor.isValidToken("Secret", "secret"));
     }
 }

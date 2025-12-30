@@ -3,6 +3,9 @@ package suprim.sepay.checkout;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 /**
  * Immutable checkout request containing all payment form data.
  */
@@ -58,8 +61,8 @@ public class CheckoutRequest {
         Map<String, String> map = new LinkedHashMap<>();
         map.put("merchant", nullToEmpty(merchant));
         map.put("env", nullToEmpty(env));
-        map.put("operation", operation != null ? operation.getValue() : "");
-        map.put("payment_method", paymentMethod != null ? paymentMethod.getValue() : "");
+        map.put("operation", nonNull(operation) ? operation.getValue() : "");
+        map.put("payment_method", nonNull(paymentMethod) ? paymentMethod.getValue() : "");
         map.put("order_amount", String.valueOf(orderAmount));
         map.put("currency", nullToEmpty(currency));
         map.put("order_invoice_number", nullToEmpty(orderInvoiceNumber));
@@ -86,7 +89,7 @@ public class CheckoutRequest {
     }
 
     private String nullToEmpty(String value) {
-        return value != null ? value : "";
+        return nonNull(value) ? value : "";
     }
 
     // Getters

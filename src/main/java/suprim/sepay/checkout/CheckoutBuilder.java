@@ -7,6 +7,9 @@ import suprim.sepay.exception.SePayValidationException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 /**
  * Fluent builder for creating checkout requests with validation.
  */
@@ -49,17 +52,17 @@ public class CheckoutBuilder {
      * @return new builder instance
      */
     public static CheckoutBuilder create(String merchant, String secretKey) {
-        if (merchant == null || merchant.isEmpty()) {
+        if (isNull(merchant) || merchant.isEmpty()) {
             throw new SePayValidationException("Merchant ID is required");
         }
-        if (secretKey == null || secretKey.isEmpty()) {
+        if (isNull(secretKey) || secretKey.isEmpty()) {
             throw new SePayValidationException("Secret key is required");
         }
         return new CheckoutBuilder(merchant, secretKey);
     }
 
     public CheckoutBuilder environment(Environment env) {
-        this.environment = env != null ? env : Environment.SANDBOX;
+        this.environment = nonNull(env) ? env : Environment.SANDBOX;
         return this;
     }
 
@@ -191,11 +194,11 @@ public class CheckoutBuilder {
     }
 
     private void validate() {
-        if (operation == null) {
+        if (isNull(operation)) {
             throw new SePayValidationException("Operation is required");
         }
 
-        if (orderDescription == null || orderDescription.isEmpty()) {
+        if (isNull(orderDescription) || orderDescription.isEmpty()) {
             throw new SePayValidationException("Order description is required");
         }
 
@@ -213,7 +216,7 @@ public class CheckoutBuilder {
             throw new SePayValidationException("PURCHASE requires amount > 0");
         }
 
-        if (orderInvoiceNumber == null || orderInvoiceNumber.isEmpty()) {
+        if (isNull(orderInvoiceNumber) || orderInvoiceNumber.isEmpty()) {
             throw new SePayValidationException("PURCHASE requires invoice number");
         }
 
@@ -235,13 +238,13 @@ public class CheckoutBuilder {
     }
 
     private void validateUrls() {
-        if (successUrl != null && !isValidUrl(successUrl)) {
+        if (nonNull(successUrl) && !isValidUrl(successUrl)) {
             throw new SePayValidationException("Invalid success URL");
         }
-        if (errorUrl != null && !isValidUrl(errorUrl)) {
+        if (nonNull(errorUrl) && !isValidUrl(errorUrl)) {
             throw new SePayValidationException("Invalid error URL");
         }
-        if (cancelUrl != null && !isValidUrl(cancelUrl)) {
+        if (nonNull(cancelUrl) && !isValidUrl(cancelUrl)) {
             throw new SePayValidationException("Invalid cancel URL");
         }
     }

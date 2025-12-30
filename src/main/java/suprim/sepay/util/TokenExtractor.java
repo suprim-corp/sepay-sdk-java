@@ -2,8 +2,13 @@ package suprim.sepay.util;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
+import static java.util.Objects.isNull;
+
 /**
- * Extracts API key from custom "Apikey" authorization header.
+ * Extracts and validates API key from custom "Apikey" authorization header.
  *
  * <p>SePay uses format: <code>Authorization: Apikey {token}</code>
  * NOT standard Bearer token format.
@@ -14,12 +19,34 @@ import jakarta.servlet.http.HttpServletRequest;
  * String token = extractor.extractToken(request);
  * // or
  * String token = extractor.extractTokenFromHeader(authHeader);
+ *
+ * // Validate with constant-time comparison (prevents timing attacks)
+ * if (TokenExtractor.isValidToken(token, expectedToken)) {
+ *     // process webhook
+ * }
  * </pre>
  */
 public class TokenExtractor {
 
     private static final String APIKEY_PREFIX = "Apikey ";
     private static final int PREFIX_LENGTH = 7; // "Apikey ".length()
+
+    /**
+     * Validates token using constant-time comparison to prevent timing attacks.
+     *
+     * @param provided the token from request
+     * @param expected the expected token
+     * @return true if tokens match, false otherwise
+     */
+    public static boolean isValidToken(String provided, String expected) {
+        if (isNull(provided) || isNull(expected)) {
+            return false;
+        }
+        return MessageDigest.isEqual(
+            provided.getBytes(StandardCharsets.UTF_8),
+            expected.getBytes(StandardCharsets.UTF_8)
+        );
+    }
 
     /**
      * Extract token from Authorization header.
@@ -39,12 +66,12 @@ public class TokenExtractor {
      * @return token if found, null otherwise
      */
     public String extractTokenFromHeader(String authHeader) {
-        if (authHeader == null || authHeader.isEmpty()) {
+        if (isNull(authHeader) || authHeader.isEmpty()) {
             return null;
         }
 
-        // Find "Apikey " prefix (case-insensitive)
-        int position = authHeader.toLowerCase().lastIndexOf(APIKEY_PREFIX.toLowerCase());
+        // Find first "Apikey " prefix (case-insensitive)
+        int position = authHeader.toLowerCase().indexOf(APIKEY_PREFIX.toLowerCase());
         if (position == -1) {
             return null;
         }

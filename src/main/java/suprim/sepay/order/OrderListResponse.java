@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collections;
 import java.util.List;
 
+import static java.util.Objects.nonNull;
+
 /**
  * Paginated response for order list API.
  */
@@ -27,7 +29,7 @@ public class OrderListResponse {
 
     // Getters
     public List<Order> getData() {
-        return data != null ? Collections.unmodifiableList(data) : Collections.emptyList();
+        return nonNull(data) ? Collections.unmodifiableList(data) : Collections.emptyList();
     }
 
     public int getTotal() { return total; }

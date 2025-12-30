@@ -4,6 +4,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.util.Objects.isNull;
+
 /**
  * Pattern matching utility for extracting identifiers from transaction content.
  *
@@ -27,7 +29,7 @@ public class PatternMatcher {
      * @return Extracted identifier if match found, empty otherwise
      */
     public Optional<String> extractIdentifier(String content, String patternPrefix) {
-        if (content == null || content.isEmpty() || patternPrefix == null || patternPrefix.isEmpty()) {
+        if (isNull(content) || content.isEmpty() || isNull(patternPrefix) || patternPrefix.isEmpty()) {
             return Optional.empty();
         }
 

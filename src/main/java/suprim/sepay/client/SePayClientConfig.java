@@ -1,6 +1,13 @@
 package suprim.sepay.client;
 
 import suprim.sepay.config.Environment;
+import suprim.sepay.config.UrlConfig;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 /**
  * Configuration for SePay client.
@@ -17,6 +24,9 @@ public final class SePayClientConfig {
     private final int readTimeoutMs;
     private final int maxRetries;
     private final int retryDelayMs;
+    private final boolean debugMode;
+    private final String customApiBaseUrl;
+    private final String customCheckoutBaseUrl;
 
     // Defaults
     private static final Environment DEFAULT_ENVIRONMENT = Environment.SANDBOX;
@@ -24,6 +34,7 @@ public final class SePayClientConfig {
     private static final int DEFAULT_READ_TIMEOUT_MS = 30000;
     private static final int DEFAULT_MAX_RETRIES = 3;
     private static final int DEFAULT_RETRY_DELAY_MS = 1000;
+    private static final boolean DEFAULT_DEBUG_MODE = false;
 
     private SePayClientConfig(Builder builder) {
         this.merchantId = builder.merchantId;
@@ -33,6 +44,9 @@ public final class SePayClientConfig {
         this.readTimeoutMs = builder.readTimeoutMs;
         this.maxRetries = builder.maxRetries;
         this.retryDelayMs = builder.retryDelayMs;
+        this.debugMode = builder.debugMode;
+        this.customApiBaseUrl = builder.customApiBaseUrl;
+        this.customCheckoutBaseUrl = builder.customCheckoutBaseUrl;
     }
 
     public static Builder builder(String merchantId, String secretKey) {
@@ -67,6 +81,45 @@ public final class SePayClientConfig {
         return retryDelayMs;
     }
 
+    public boolean isDebugMode() {
+        return debugMode;
+    }
+
+    /**
+     * Returns the API base URL. Uses custom URL if set, otherwise environment default.
+     */
+    public String getApiBaseUrl() {
+        return nonNull(customApiBaseUrl) ? customApiBaseUrl
+            : UrlConfig.getApiBaseUrl(environment);
+    }
+
+    /**
+     * Returns the checkout base URL. Uses custom URL if set, otherwise environment default.
+     */
+    public String getCheckoutBaseUrl() {
+        return nonNull(customCheckoutBaseUrl) ? customCheckoutBaseUrl
+            : UrlConfig.getCheckoutBaseUrl(environment);
+    }
+
+    /**
+     * Returns string representation with secret key redacted for security.
+     */
+    @Override
+    public String toString() {
+        return "SePayClientConfig{" +
+                "merchantId='" + merchantId + '\'' +
+                ", secretKey=<REDACTED>" +
+                ", environment=" + environment +
+                ", connectTimeoutMs=" + connectTimeoutMs +
+                ", readTimeoutMs=" + readTimeoutMs +
+                ", maxRetries=" + maxRetries +
+                ", retryDelayMs=" + retryDelayMs +
+                ", debugMode=" + debugMode +
+                (nonNull(customApiBaseUrl) ? ", customApiBaseUrl=" + customApiBaseUrl : "") +
+                (nonNull(customCheckoutBaseUrl) ? ", customCheckoutBaseUrl=" + customCheckoutBaseUrl : "") +
+                '}';
+    }
+
     public static final class Builder {
         private final String merchantId;
         private final String secretKey;
@@ -75,12 +128,15 @@ public final class SePayClientConfig {
         private int readTimeoutMs = DEFAULT_READ_TIMEOUT_MS;
         private int maxRetries = DEFAULT_MAX_RETRIES;
         private int retryDelayMs = DEFAULT_RETRY_DELAY_MS;
+        private boolean debugMode = DEFAULT_DEBUG_MODE;
+        private String customApiBaseUrl;
+        private String customCheckoutBaseUrl;
 
         private Builder(String merchantId, String secretKey) {
-            if (merchantId == null || merchantId.trim().isEmpty()) {
+            if (isNull(merchantId) || merchantId.trim().isEmpty()) {
                 throw new IllegalArgumentException("merchantId cannot be null or empty");
             }
-            if (secretKey == null || secretKey.trim().isEmpty()) {
+            if (isNull(secretKey) || secretKey.trim().isEmpty()) {
                 throw new IllegalArgumentException("secretKey cannot be null or empty");
             }
             this.merchantId = merchantId;
@@ -88,7 +144,7 @@ public final class SePayClientConfig {
         }
 
         public Builder environment(Environment environment) {
-            if (environment == null) {
+            if (isNull(environment)) {
                 throw new IllegalArgumentException("environment cannot be null");
             }
             this.environment = environment;
@@ -125,6 +181,49 @@ public final class SePayClientConfig {
             }
             this.retryDelayMs = ms;
             return this;
+        }
+
+        /**
+         * Enables or disables debug mode for detailed logging.
+         */
+        public Builder debugMode(boolean enabled) {
+            this.debugMode = enabled;
+            return this;
+        }
+
+        /**
+         * Sets custom API base URL (overrides environment default).
+         * Useful for testing or custom deployments.
+         *
+         * @param url full base URL (e.g., "https://custom-api.example.com")
+         */
+        public Builder apiBaseUrl(String url) {
+            if (nonNull(url) && !url.isEmpty()) {
+                validateUrl(url);
+                this.customApiBaseUrl = url.replaceAll("/+$", "");
+            }
+            return this;
+        }
+
+        /**
+         * Sets custom checkout base URL (overrides environment default).
+         *
+         * @param url full base URL (e.g., "https://custom-checkout.example.com")
+         */
+        public Builder checkoutBaseUrl(String url) {
+            if (nonNull(url) && !url.isEmpty()) {
+                validateUrl(url);
+                this.customCheckoutBaseUrl = url.replaceAll("/+$", "");
+            }
+            return this;
+        }
+
+        private void validateUrl(String url) {
+            try {
+                new URL(url);
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Invalid URL: " + url, e);
+            }
         }
 
         public SePayClientConfig build() {

@@ -5,6 +5,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 /**
  * Request parameters for listing orders.
  */
@@ -44,25 +47,25 @@ public class OrderListRequest {
     public Map<String, String> toQueryParams() {
         Map<String, String> params = new LinkedHashMap<>();
 
-        params.put("per_page", String.valueOf(perPage != null ? perPage : DEFAULT_PER_PAGE));
-        params.put("page", String.valueOf(page != null ? page : DEFAULT_PAGE));
+        params.put("per_page", String.valueOf(nonNull(perPage) ? perPage : DEFAULT_PER_PAGE));
+        params.put("page", String.valueOf(nonNull(page) ? page : DEFAULT_PAGE));
 
-        if (query != null && !query.isEmpty()) {
+        if (nonNull(query) && !query.isEmpty()) {
             params.put("query", query);
         }
-        if (customerId != null && !customerId.isEmpty()) {
+        if (nonNull(customerId) && !customerId.isEmpty()) {
             params.put("customer_id", customerId);
         }
-        if (orderStatus != null) {
+        if (nonNull(orderStatus)) {
             params.put("order_status", orderStatus.getValue());
         }
-        if (fromCreatedAt != null) {
+        if (nonNull(fromCreatedAt)) {
             params.put("from_created_at", fromCreatedAt.format(DATE_FORMAT));
         }
-        if (toCreatedAt != null) {
+        if (nonNull(toCreatedAt)) {
             params.put("to_created_at", toCreatedAt.format(DATE_FORMAT));
         }
-        if (sort != null && !sort.isEmpty()) {
+        if (nonNull(sort) && !sort.isEmpty()) {
             params.put("sort", sort);
         }
 
@@ -70,8 +73,8 @@ public class OrderListRequest {
     }
 
     // Getters
-    public Integer getPerPage() { return perPage != null ? perPage : DEFAULT_PER_PAGE; }
-    public Integer getPage() { return page != null ? page : DEFAULT_PAGE; }
+    public Integer getPerPage() { return nonNull(perPage) ? perPage : DEFAULT_PER_PAGE; }
+    public Integer getPage() { return nonNull(page) ? page : DEFAULT_PAGE; }
     public String getQuery() { return query; }
     public String getCustomerId() { return customerId; }
     public OrderStatus getOrderStatus() { return orderStatus; }

@@ -187,6 +187,33 @@ class ExceptionTest {
         assertTrue(ex instanceof SePayException);
     }
 
+    // SePayNotFoundException tests
+
+    @Test
+    void sePayNotFoundException_message() {
+        SePayNotFoundException ex = new SePayNotFoundException("Order not found");
+        assertEquals("Order not found", ex.getMessage());
+        assertEquals(404, ex.getStatusCode());
+        assertEquals("NOT_FOUND", ex.getErrorCode());
+    }
+
+    @Test
+    void sePayNotFoundException_messageAndCause() {
+        Exception cause = new Exception("DB lookup failed");
+        SePayNotFoundException ex = new SePayNotFoundException("Resource missing", cause);
+        assertEquals("Resource missing", ex.getMessage());
+        assertEquals(404, ex.getStatusCode());
+        assertEquals("NOT_FOUND", ex.getErrorCode());
+        assertEquals(cause, ex.getCause());
+    }
+
+    @Test
+    void inheritance_sePayNotFoundException() {
+        SePayNotFoundException ex = new SePayNotFoundException("Test");
+        assertTrue(ex instanceof SePayApiException);
+        assertTrue(ex instanceof SePayException);
+    }
+
     @Test
     void inheritance_sePayWebhookException() {
         SePayWebhookException ex = new SePayWebhookException("Test");

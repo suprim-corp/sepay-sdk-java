@@ -3,6 +3,8 @@ package suprim.sepay.checkout;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import static java.util.Objects.isNull;
+
 /**
  * Payment operation types supported by SePay.
  */
@@ -27,7 +29,7 @@ public enum Operation {
 
     @JsonCreator
     public static Operation fromValue(String value) {
-        if (value == null) {
+        if (isNull(value)) {
             return null;
         }
         for (Operation op : values()) {

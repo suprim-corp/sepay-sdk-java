@@ -10,6 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
+
 /**
  * Resource for managing orders via SePay API.
  */
@@ -94,13 +96,13 @@ public class OrderResource {
     }
 
     private void validateOrderId(String orderId) {
-        if (orderId == null || orderId.isEmpty()) {
+        if (isNull(orderId) || orderId.isEmpty()) {
             throw new SePayValidationException("Order ID is required");
         }
     }
 
     private String appendQueryParams(String baseUrl, Map<String, String> params) {
-        if (params == null || params.isEmpty()) {
+        if (isNull(params) || params.isEmpty()) {
             return baseUrl;
         }
         String queryString = params.entrySet().stream()
@@ -110,7 +112,7 @@ public class OrderResource {
     }
 
     private String encodeParam(String value) {
-        if (value == null) {
+        if (isNull(value)) {
             return "";
         }
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
