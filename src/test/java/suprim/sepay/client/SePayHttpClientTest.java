@@ -24,7 +24,6 @@ import static org.mockito.Mockito.*;
 /**
  * Unit tests for SePayHttpClient.
  */
-@SuppressWarnings("unchecked")
 class SePayHttpClientTest {
 
     private HttpClient mockHttpClient;
@@ -486,8 +485,9 @@ class SePayHttpClientTest {
     void testPostWithUnserializableBody() throws Exception {
         // Create ObjectMapper that will fail
         ObjectMapper failingMapper = mock(ObjectMapper.class);
-        when(failingMapper.writeValueAsString(any()))
-            .thenThrow(new com.fasterxml.jackson.core.JsonProcessingException("Cannot serialize") {});
+        com.fasterxml.jackson.core.JsonProcessingException jsonEx =
+            new com.fasterxml.jackson.databind.JsonMappingException(null, "Cannot serialize");
+        when(failingMapper.writeValueAsString(any())).thenThrow(jsonEx);
 
         SePayHttpClient client = new SePayHttpClient(config, failingMapper, mockHttpClient);
         SePayException ex = assertThrows(SePayException.class, () ->

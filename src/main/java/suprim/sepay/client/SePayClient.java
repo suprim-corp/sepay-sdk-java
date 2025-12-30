@@ -7,6 +7,8 @@ import suprim.sepay.order.OrderResource;
 
 import java.util.Objects;
 
+import static java.util.Objects.isNull;
+
 /**
  * Main entry point for SePay SDK.
  *
@@ -66,23 +68,31 @@ public class SePayClient {
 
     /**
      * Returns the checkout resource for form generation.
+     * Thread-safe lazy initialization.
      *
      * @return checkout resource
      */
-    public CheckoutResource checkout() {
-        if (checkoutResource == null) {
-            checkoutResource = new CheckoutResource(config.getEnvironment());
+    public synchronized CheckoutResource checkout() {
+        if (isNull(checkoutResource)) {
+            checkoutResource = new CheckoutResource(
+                config.getEnvironment(),
+                config.getSecretKey(),
+                config.getCheckoutBaseUrl().equals(
+                    suprim.sepay.config.UrlConfig.getCheckoutBaseUrl(config.getEnvironment()))
+                    ? null : config.getCheckoutBaseUrl()
+            );
         }
         return checkoutResource;
     }
 
     /**
      * Returns the orders resource for order management.
+     * Thread-safe lazy initialization.
      *
      * @return orders resource
      */
-    public OrderResource orders() {
-        if (orderResource == null) {
+    public synchronized OrderResource orders() {
+        if (isNull(orderResource)) {
             orderResource = new OrderResource(httpClient, config.getEnvironment());
         }
         return orderResource;

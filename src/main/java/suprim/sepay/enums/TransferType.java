@@ -3,6 +3,8 @@ package suprim.sepay.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import static java.util.Objects.isNull;
+
 /**
  * Transaction direction: money IN (credit) or OUT (debit).
  */
@@ -36,7 +38,7 @@ public enum TransferType {
      */
     @JsonCreator
     public static TransferType fromValue(String value) {
-        if (value == null) {
+        if (isNull(value)) {
             throw new IllegalArgumentException("TransferType cannot be null");
         }
         for (TransferType type : values()) {

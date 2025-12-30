@@ -4,9 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import suprim.sepay.exception.SePayApiException;
 import suprim.sepay.exception.SePayException;
+import suprim.sepay.exception.SePayNotFoundException;
 import suprim.sepay.exception.SePayRateLimitException;
 import suprim.sepay.exception.SePayServerException;
 import suprim.sepay.exception.SePayValidationException;
+import suprim.sepay.logging.SePayLogger;
 
 import java.io.IOException;
 import java.net.URI;
@@ -17,18 +19,22 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
 
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
+
 /**
  * HTTP client for SePay API with retry logic and error handling.
  */
 public class SePayHttpClient {
 
-    private static final String USER_AGENT = "SePay-Java-SDK/0.2.0";
+    private static final String USER_AGENT = "SePay-Java-SDK/0.0.2";
     private static final String CONTENT_TYPE = "application/json";
 
     private final HttpClient httpClient;
     private final SePayClientConfig config;
     private final String authHeader;
     private final ObjectMapper objectMapper;
+    private final SePayLogger logger;
 
     public SePayHttpClient(SePayClientConfig config) {
         this(config, new ObjectMapper());
@@ -38,6 +44,7 @@ public class SePayHttpClient {
         this.config = config;
         this.objectMapper = objectMapper;
         this.authHeader = buildAuthHeader(config.getMerchantId(), config.getSecretKey());
+        this.logger = SePayLogger.getLogger(SePayHttpClient.class);
         this.httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofMillis(config.getConnectTimeoutMs()))
             .followRedirects(HttpClient.Redirect.NORMAL)
@@ -49,6 +56,7 @@ public class SePayHttpClient {
         this.config = config;
         this.objectMapper = objectMapper;
         this.authHeader = buildAuthHeader(config.getMerchantId(), config.getSecretKey());
+        this.logger = SePayLogger.getLogger(SePayHttpClient.class);
         this.httpClient = httpClient;
     }
 
@@ -114,12 +122,23 @@ public class SePayHttpClient {
 
         for (int attempt = 0; attempt <= maxRetries; attempt++) {
             try {
+                if (config.isDebugMode()) {
+                    logger.debug("SePay API Request: {} {} (attempt {})",
+                        request.method(), request.uri(), attempt + 1);
+                }
+
                 HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
                 int statusCode = response.statusCode();
                 String body = response.body();
 
+                if (config.isDebugMode()) {
+                    String truncatedBody = nonNull(body) && body.length() > 500
+                        ? body.substring(0, 500) + "..." : body;
+                    logger.debug("SePay API Response: {} - {}", statusCode, truncatedBody);
+                }
+
                 if (statusCode >= 200 && statusCode < 300) {
-                    return body != null ? body : "";
+                    return nonNull(body) ? body : "";
                 }
 
                 // Not a success - check if retryable
@@ -143,7 +162,7 @@ public class SePayHttpClient {
         }
 
         // Should not reach here, but just in case
-        throw lastException != null ? lastException : new SePayException("Request failed after retries");
+        throw nonNull(lastException) ? lastException : new SePayException("Request failed after retries");
     }
 
     private boolean isRetryable(int statusCode) {
@@ -167,37 +186,35 @@ public class SePayHttpClient {
         switch (statusCode) {
             case 400:
                 return new SePayApiException(
-                    errorMessage != null ? errorMessage : "Validation error",
+                    nonNull(errorMessage) ? errorMessage : "Validation error",
                     statusCode,
                     errorCode
                 );
             case 401:
                 return new SePayApiException(
-                    errorMessage != null ? errorMessage : "Authentication failed",
+                    nonNull(errorMessage) ? errorMessage : "Authentication failed",
                     statusCode,
                     errorCode
                 );
             case 404:
-                return new SePayApiException(
-                    errorMessage != null ? errorMessage : "Resource not found",
-                    statusCode,
-                    "NOT_FOUND"
+                return new SePayNotFoundException(
+                    nonNull(errorMessage) ? errorMessage : "Resource not found"
                 );
             case 429:
                 Long retryAfter = parseRetryAfter(responseBody);
                 return new SePayRateLimitException(
-                    errorMessage != null ? errorMessage : "Rate limit exceeded",
+                    nonNull(errorMessage) ? errorMessage : "Rate limit exceeded",
                     retryAfter
                 );
             default:
                 if (statusCode >= 500) {
                     return new SePayServerException(
-                        errorMessage != null ? errorMessage : "Server error",
+                        nonNull(errorMessage) ? errorMessage : "Server error",
                         statusCode
                     );
                 }
                 return new SePayApiException(
-                    errorMessage != null ? errorMessage : "API error",
+                    nonNull(errorMessage) ? errorMessage : "API error",
                     statusCode,
                     errorCode
                 );
@@ -205,7 +222,7 @@ public class SePayHttpClient {
     }
 
     private String parseErrorMessage(String responseBody) {
-        if (responseBody == null || responseBody.isEmpty()) {
+        if (isNull(responseBody) || responseBody.isEmpty()) {
             return null;
         }
         try {
@@ -217,7 +234,7 @@ public class SePayHttpClient {
     }
 
     private String parseErrorCode(String responseBody) {
-        if (responseBody == null || responseBody.isEmpty()) {
+        if (isNull(responseBody) || responseBody.isEmpty()) {
             return null;
         }
         try {

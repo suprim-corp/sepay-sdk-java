@@ -175,4 +175,126 @@ class CheckoutResourceTest {
         String url = resource.getCheckoutUrl();
         assertTrue(url.contains("sandbox"));
     }
+
+    // Custom URL tests
+
+    @Test
+    void customCheckoutUrl_used() {
+        CheckoutResource resource = new CheckoutResource(
+            Environment.SANDBOX, SECRET, "https://custom.example.com"
+        );
+        String url = resource.getCheckoutUrl();
+        assertEquals("https://custom.example.com/v1/checkout/init", url);
+    }
+
+    @Test
+    void customCheckoutUrl_null_usesDefault() {
+        CheckoutResource resource = new CheckoutResource(Environment.SANDBOX, SECRET, null);
+        String url = resource.getCheckoutUrl();
+        assertTrue(url.contains("sandbox"));
+        assertTrue(url.contains("sepay"));
+    }
+
+    // verifySignature tests
+
+    @Test
+    void verifySignature_validSignature_returnsTrue() {
+        CheckoutResource resource = new CheckoutResource(Environment.SANDBOX, SECRET);
+        CheckoutRequest request = createValidRequest();
+        Map<String, String> fields = request.toFormFields();
+
+        // Remove signature from fields for verification
+        String signature = fields.remove("signature");
+
+        assertTrue(resource.verifySignature(fields, signature));
+    }
+
+    @Test
+    void verifySignature_invalidSignature_returnsFalse() {
+        CheckoutResource resource = new CheckoutResource(Environment.SANDBOX, SECRET);
+        CheckoutRequest request = createValidRequest();
+        Map<String, String> fields = request.toFormFields();
+        fields.remove("signature");
+
+        assertFalse(resource.verifySignature(fields, "invalid_signature"));
+    }
+
+    @Test
+    void verifySignature_nullSignature_returnsFalse() {
+        CheckoutResource resource = new CheckoutResource(Environment.SANDBOX, SECRET);
+        assertFalse(resource.verifySignature(Map.of("test", "value"), null));
+    }
+
+    @Test
+    void verifySignature_emptySignature_returnsFalse() {
+        CheckoutResource resource = new CheckoutResource(Environment.SANDBOX, SECRET);
+        assertFalse(resource.verifySignature(Map.of("test", "value"), ""));
+    }
+
+    @Test
+    void verifySignature_noSecretKey_throwsException() {
+        CheckoutResource resource = new CheckoutResource(Environment.SANDBOX);
+        assertThrows(IllegalStateException.class,
+            () -> resource.verifySignature(Map.of("test", "value"), "sig"));
+    }
+
+    // generateAutoSubmitScript tests
+
+    @Test
+    void generateAutoSubmitScript_defaultFormId() {
+        String script = sandboxResource.generateAutoSubmitScript();
+        assertTrue(script.contains("<script>"));
+        assertTrue(script.contains("sepay-checkout-form"));
+        assertTrue(script.contains(".submit()"));
+    }
+
+    @Test
+    void generateAutoSubmitScript_customFormId() {
+        String script = sandboxResource.generateAutoSubmitScript("my-form");
+        assertTrue(script.contains("<script>"));
+        assertTrue(script.contains("my-form"));
+        assertTrue(script.contains(".submit()"));
+    }
+
+    @Test
+    void generateAutoSubmitScript_nullFormId_usesDefault() {
+        String script = sandboxResource.generateAutoSubmitScript(null);
+        assertTrue(script.contains("sepay-checkout-form"));
+    }
+
+    @Test
+    void generateAutoSubmitScript_emptyFormId_usesDefault() {
+        String script = sandboxResource.generateAutoSubmitScript("");
+        assertTrue(script.contains("sepay-checkout-form"));
+    }
+
+    // buildAutoSubmitForm tests
+
+    @Test
+    void buildAutoSubmitForm_containsFormAndScript() {
+        CheckoutRequest request = createValidRequest();
+        String html = sandboxResource.buildAutoSubmitForm(request);
+
+        assertTrue(html.contains("<form"));
+        assertTrue(html.contains("id=\"sepay-checkout-form\""));
+        assertTrue(html.contains("<script>"));
+        assertTrue(html.contains(".submit()"));
+    }
+
+    @Test
+    void buildAutoSubmitForm_customFormId() {
+        CheckoutRequest request = createValidRequest();
+        String html = sandboxResource.buildAutoSubmitForm(request, "custom-form");
+
+        assertTrue(html.contains("id=\"custom-form\""));
+        assertTrue(html.contains("getElementById(\"custom-form\")"));
+    }
+
+    @Test
+    void buildAutoSubmitForm_noSubmitButton() {
+        CheckoutRequest request = createValidRequest();
+        String html = sandboxResource.buildAutoSubmitForm(request);
+
+        assertFalse(html.contains("<button"));
+    }
 }

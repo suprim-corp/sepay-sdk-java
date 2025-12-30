@@ -3,6 +3,8 @@ package suprim.sepay.auth;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
+import static java.util.Objects.isNull;
+
 /**
  * Provides HTTP Basic Authentication header for SePay API requests.
  * Format: "Basic base64(merchantId:secretKey)"
@@ -21,10 +23,10 @@ public class BasicAuthProvider {
      * @throws IllegalArgumentException if merchantId or secretKey is null
      */
     public BasicAuthProvider(String merchantId, String secretKey) {
-        if (merchantId == null) {
+        if (isNull(merchantId)) {
             throw new IllegalArgumentException("Merchant ID cannot be null");
         }
-        if (secretKey == null) {
+        if (isNull(secretKey)) {
             throw new IllegalArgumentException("Secret key cannot be null");
         }
 

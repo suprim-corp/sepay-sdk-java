@@ -3,6 +3,8 @@ package suprim.sepay.order;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import static java.util.Objects.isNull;
+
 /**
  * Order status values from SePay API.
  */
@@ -30,7 +32,7 @@ public enum OrderStatus {
 
     @JsonCreator
     public static OrderStatus fromValue(String value) {
-        if (value == null) {
+        if (isNull(value)) {
             return null;
         }
         for (OrderStatus status : values()) {

@@ -2,8 +2,10 @@
 
 Java SDK for SePay payment gateway - webhooks, checkout, and order management.
 
+[![JitPack](https://jitpack.io/v/suprim-corp/sepay-sdk-java.svg)](https://jitpack.io/#suprim-corp/sepay-sdk-java)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java Version](https://img.shields.io/badge/Java-11+-blue.svg)](https://openjdk.java.net/)
+[![codecov](https://codecov.io/gh/suprim-corp/sepay-sdk-java/graph/badge.svg)](https://codecov.io/gh/suprim-corp/sepay-sdk-java)
 
 ## Features
 
@@ -20,14 +22,14 @@ Java SDK for SePay payment gateway - webhooks, checkout, and order management.
 <dependency>
     <groupId>suprim</groupId>
     <artifactId>sepay-sdk</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-implementation 'suprim:sepay-sdk:0.0.1'
+implementation 'suprim:sepay-sdk:0.0.2'
 ```
 
 ## Quick Start
@@ -225,6 +227,7 @@ String content = data.getContent();        // Transaction content
 |-----------|-------------|
 | `SePayException` | Base exception |
 | `SePayApiException` | API error with status code |
+| `SePayNotFoundException` | 404 Not Found |
 | `SePayAuthenticationException` | 401 Unauthorized |
 | `SePayRateLimitException` | 429 Too Many Requests |
 | `SePayServerException` | 5xx Server Error |
@@ -241,6 +244,9 @@ SePayClientConfig config = SePayClient.builder("MERCHANT_ID", "SECRET_KEY")
     .readTimeout(30000)                // Default: 30000ms
     .maxRetries(3)                     // Default: 3
     .retryDelay(1000)                  // Default: 1000ms
+    .debugMode(true)                   // Enable request/response logging
+    .apiBaseUrl("https://custom.api")  // Custom API URL (optional)
+    .checkoutBaseUrl("https://custom") // Custom checkout URL (optional)
     .build();
 ```
 
